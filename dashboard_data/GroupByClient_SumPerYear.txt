@@ -1,0 +1,78 @@
+var portal = Portal('https://www.arcgis.com/');
+var fs = FeatureSetByPortalItem(
+    portal,
+    '3b2d4d00c8224084bb3881206211b15f',
+    0,
+    [
+        'client',
+        'Annee_creation'
+    ],
+    false
+);
+
+var Nb_2020 =  Filter(GroupBy(fs, ['client'], 
+[{name: 'nb_enquetes_2020', expression: 'Annee_creation' , statistic: 'COUNT'}]),'Annee_creation = 2020'); 
+ 
+var Nb_2021 =  Filter(GroupBy(fs, ['client'], 
+[{name: 'nb_enquetes_2021', expression: 'Annee_creation' , statistic: 'COUNT'}]),'Annee_creation = 2021');
+
+var Nb_2022 =  Filter(GroupBy(fs, ['client'], 
+[{name: 'nb_enquetes_2022', expression: 'Annee_creation' , statistic: 'COUNT'}]),'Annee_creation = 2022');
+
+var features = [];
+var feat;
+
+for (var m in Nb_2020) {
+    feat = {
+        attributes: 
+        {
+            Nb2020: m['nb_enquetes_2020'],
+            client: m['client']
+        },
+    };
+    Push(features, feat);
+}
+
+for (var m in Nb_2021) {
+    feat = {
+        attributes: 
+        {
+            Nb2021: m['nb_enquetes_2021'],
+            client: m['client']
+        },
+    };
+    Push(features, feat);
+}
+
+for (var m in Nb_2022) {
+    feat = {
+        attributes: 
+        {
+            Nb2022: m['nb_enquetes_2022'],
+            client: m['client']
+        },
+    };
+    Push(features, feat);
+}
+
+var CombinedEnquetes = {
+    fields: [
+        { name: 'Nb2020', type: 'esriFieldTypeInteger'},
+        { name: 'Nb2021', type: 'esriFieldTypeInteger'},
+        { name: 'Nb2022', type: 'esriFieldTypeInteger'},
+        { name: 'Client', type: 'esriFieldTypeString'}
+    ],
+    geometryType: '',
+    features: features,
+};
+
+var CombinedEnquetesDic = FeatureSet(Text(CombinedEnquetes));
+
+var stats_list = [
+    { name: 'Nb2020', expression: 'Nb2020', statistic: 'SUM' },
+    { name: 'Nb2021', expression: 'Nb2021', statistic: 'SUM' },
+    { name: 'Nb2022', expression: 'Nb2022', statistic: 'SUM' }
+];
+
+return GroupBy(CombinedEnquetesDic, "client", stats_list)
+
